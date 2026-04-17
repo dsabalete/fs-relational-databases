@@ -5,12 +5,18 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test --test-concurrency=1 tests/api_ch3.test.js",
+    "start:prod": "ENV_FILE=.env.prod node index.js",
+    "prod:db:up": "docker compose --env-file .env.prod -f docker-compose.prod.yml up -d postgres",
+    "prod:db:down": "docker compose --env-file .env.prod -f docker-compose.prod.yml down -v",
+    "prod:up": "docker compose --env-file .env.prod -f docker-compose.prod.yml --profile admin up -d",
+    "prod:down": "docker compose --env-file .env.prod -f docker-compose.prod.yml --profile admin down -v"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.15.0",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

@@ -1,4 +1,5 @@
-require('dotenv').config()
+const envFile = process.env.ENV_FILE || (process.env.NODE_ENV === 'production' ? '.env.prod' : '.env')
+require('dotenv').config({ path: envFile })
 
 module.exports = {
     DATABASE_URL: process.env.DATABASE_URL,

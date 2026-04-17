@@ -1,0 +1,78 @@
+name: API Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start application and run tests
+        run: |
+          npm start > app.log 2>&1 &
+          APP_PID=$!
+          cleanup() {
+            if kill -0 "$APP_PID" 2>/dev/null; then
+              kill "$APP_PID" || true
+            fi
+          }
+          trap cleanup EXIT
+
+          for _ in {1..60}; do
+            if curl -fsS http://localhost:3001 >/dev/null 2>&1; then
+              break
+            fi
+
+            if ! kill -0 "$APP_PID" 2>/dev/null; then
+              echo "Application exited before becoming ready"
+              cat app.log
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+          if ! curl -fsS http://localhost:3001 >/dev/null 2>&1; then
+            echo "Timed out waiting for application readiness"
+            cat app.log
+            exit 1
+          fi
+
+          npm test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db?sslmode=disable
+          PORT: 3001
+          SECRET: test_secret
+
+      - name: Print application logs on failure
+        if: failure()
+        run: cat app.log
