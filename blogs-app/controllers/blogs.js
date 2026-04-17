@@ -42,7 +42,8 @@ router.get('/', async (req, res) => {
             model: User,
             attributes: ['name']
         },
-        where
+        where,
+        order: [['likes', 'DESC']]
     })
     res.json(blogs)
 })
@@ -66,11 +67,7 @@ router.get('/:id', blogFinder, async (req, res) => {
     res.json(req.blog)
 })
 
-router.put('/:id', tokenExtractor, blogFinder, async (req, res, next) => {
-    if (req.blog.userId !== req.decodedToken.id) {
-        return res.status(401).json({ error: 'only creator can update a blog' })
-    }
-
+router.put('/:id', blogFinder, async (req, res, next) => {
     try {
         req.blog.likes = req.body.likes ?? req.blog.likes
         req.blog.title = req.body.title ?? req.blog.title
