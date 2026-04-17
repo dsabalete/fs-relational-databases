@@ -30,7 +30,7 @@ router.get('/', async (req, res) => {
         attributes: { exclude: ['userId'] },
         include: {
             model: User,
-            attributes: ['id', 'name', 'username']
+            attributes: ['name']
         }
     })
     res.json(blogs)
