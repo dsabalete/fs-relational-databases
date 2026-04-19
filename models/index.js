@@ -4,13 +4,7 @@ const User = require('./user')
 User.hasMany(Blog)
 Blog.belongsTo(User)
 
-const initializeModels = async () => {
-    await User.sync({ alter: true })
-    await Blog.sync({ alter: true })
-}
-
 module.exports = {
     Blog,
-    User,
-    initializeModels
+    User
 }
